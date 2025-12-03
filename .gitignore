@@ -1,6 +1,7 @@
-# Секретные данные
+# Секреты и любые json-файлы
 secret.key
 passwords.json
+*.json
 
 # Python cache (если ещё нет)
 __pycache__/

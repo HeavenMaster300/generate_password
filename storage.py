@@ -114,7 +114,9 @@ def get_password(service, username, filename="passwords.json"):
             "username": data[record_key]["username"],
             "password": decrypted_password
         }
-        print(f"Найден пароль для {service} (пользователь: {username})")
+        # ИСПРАВЛЕННАЯ СТРОКА:
+        print(f"\n🔓 Найден пароль для {service} (пользователь: {username})")
+        print(f"   Пароль: {decrypted_password}")
         return result
     else:
         print(f"Пароль для {service} (пользователь: {username}) не найден")
@@ -135,13 +137,31 @@ def list_all_passwords(filename="passwords.json"):
         return []
 
     with open(filename, "r", encoding="utf-8") as f:
-        data = json.load(f)
+        try:
+            data = json.load(f)
+        except json.JSONDecodeError:
+            print("Ошибка чтения файла паролей")
+            return []
 
+    if not data:
+        print("Нет сохранённых паролей")
+        return []
+
+    print("\nСохранённые пароли:")
+    print("-" * 50)
     records = []
     for key, value in data.items():
-        records.append({
-            "service": value["service"],
-            "username": value["username"]
-        })
+        if "service" in value and "username" in value:
+            record = {
+                "service": value["service"],
+                "username": value["username"]
+            }
+            records.append(record)
+            print(f"  📌 {value['service']} | Пользователь: {value['username']}")
+        else:
+            # Старый формат
+            print(f"  ⚠️  {key} (старый формат, несовместим)")
 
+    print("-" * 50)
+    print(f"Всего записей: {len(records)}")
     return records
