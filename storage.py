@@ -1,6 +1,9 @@
+"""Модуль для работы с хранением паролей в PostgreSQL."""
+
 from cryptography.fernet import Fernet
-import json
 import os
+from db import get_db_connection, init_database
+
 
 def get_or_create_key(key_file="secret.key"):
     """Получает или создаёт ключ шифрования.
@@ -51,117 +54,132 @@ def decrypt_password(encrypted_password, key):
     return decrypted.decode()
 
 
-def save_password(password, service, username, filename="passwords.json"):
-    """Сохраняет зашифрованный пароль с информацией о сервисе и пользователе.
+def save_password(password, service, username):
+    """Сохраняет зашифрованный пароль в PostgreSQL.
 
     Args:
         password (str): Пароль для сохранения.
         service (str): Название сервиса (например, "GitHub", "Gmail").
         username (str): Имя пользователя для этого сервиса.
-        filename (str, optional): Имя файла для хранения. По умолчанию "passwords.json".
 
     Returns:
         None
     """
+    # Инициализация БД (если таблицы нет)
+    init_database()
+
     key = get_or_create_key()
     encrypted = encrypt_password(password, key)
 
-    data = {}
-    if os.path.exists(filename):
-        with open(filename, "r", encoding="utf-8") as f:
-            data = json.load(f)
+    conn = get_db_connection()
+    cur = conn.cursor()
 
-    # Используем уникальный ключ: service_username
-    record_key = f"{service}_{username}"
-    data[record_key] = {
-        "service": service,
-        "username": username,
-        "password": encrypted
-    }
+    try:
+        # Попытка вставки или обновления (UPSERT)
+        cur.execute("""
+            INSERT INTO passwords (service, username, password)
+            VALUES (%s, %s, %s)
+            ON CONFLICT (service, username) 
+            DO UPDATE SET 
+                password = EXCLUDED.password,
+                updated_at = NOW();
+        """, (service, username, encrypted))
 
-    with open(filename, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=4, ensure_ascii=False)
+        conn.commit()
+        print(f"Пароль для {service} (пользователь: {username}) сохранён в базе данных")
+    except Exception as e:
+        conn.rollback()
+        print(f"Ошибка сохранения: {e}")
+    finally:
+        cur.close()
+        conn.close()
 
-    print(f"Пароль для {service} (пользователь: {username}) сохранён в {filename}")
 
-
-def get_password(service, username, filename="passwords.json"):
-    """Получает расшифрованный пароль по сервису и имени пользователя.
+def get_password(service, username):
+    """Получает расшифрованный пароль из PostgreSQL.
 
     Args:
         service (str): Название сервиса.
         username (str): Имя пользователя.
-        filename (str, optional): Имя файла с данными. По умолчанию "passwords.json".
 
     Returns:
         dict or None: Словарь с данными о пароле, если найден, иначе None.
     """
-    if not os.path.exists(filename):
-        print(f"Файл {filename} не найден")
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    try:
+        cur.execute("""
+            SELECT service, username, password 
+            FROM passwords 
+            WHERE service = %s AND username = %s;
+        """, (service, username))
+
+        row = cur.fetchone()
+
+        if row:
+            key = get_or_create_key()
+            encrypted_password = row[2]
+            decrypted_password = decrypt_password(encrypted_password, key)
+
+            result = {
+                "service": row[0],
+                "username": row[1],
+                "password": decrypted_password
+            }
+            print(f"\n🔓 Найден пароль для {service} (пользователь: {username})")
+            print(f"   Пароль: {decrypted_password}")
+            return result
+        else:
+            print(f"Пароль для {service} (пользователь: {username}) не найден")
+            return None
+    except Exception as e:
+        print(f"Ошибка получения пароля: {e}")
         return None
-
-    with open(filename, "r", encoding="utf-8") as f:
-        data = json.load(f)
-
-    record_key = f"{service}_{username}"
-    if record_key in data:
-        key = get_or_create_key()
-        encrypted_password = data[record_key]["password"]
-        decrypted_password = decrypt_password(encrypted_password, key)
-
-        result = {
-            "service": data[record_key]["service"],
-            "username": data[record_key]["username"],
-            "password": decrypted_password
-        }
-        # ИСПРАВЛЕННАЯ СТРОКА:
-        print(f"\n🔓 Найден пароль для {service} (пользователь: {username})")
-        print(f"   Пароль: {decrypted_password}")
-        return result
-    else:
-        print(f"Пароль для {service} (пользователь: {username}) не найден")
-        return None
+    finally:
+        cur.close()
+        conn.close()
 
 
-def list_all_passwords(filename="passwords.json"):
-    """Выводит список всех сохранённых записей без паролей.
-
-    Args:
-        filename (str, optional): Имя файла с данными. По умолчанию "passwords.json".
+def list_all_passwords():
+    """Выводит список всех сохранённых записей из PostgreSQL без паролей.
 
     Returns:
         list: Список словарей с информацией о сервисах и пользователях.
     """
-    if not os.path.exists(filename):
-        print(f"Файл {filename} не найден")
-        return []
+    conn = get_db_connection()
+    cur = conn.cursor()
 
-    with open(filename, "r", encoding="utf-8") as f:
-        try:
-            data = json.load(f)
-        except json.JSONDecodeError:
-            print("Ошибка чтения файла паролей")
+    try:
+        cur.execute("""
+            SELECT service, username, created_at 
+            FROM passwords 
+            ORDER BY created_at DESC;
+        """)
+
+        rows = cur.fetchall()
+
+        if not rows:
+            print("Нет сохранённых паролей")
             return []
 
-    if not data:
-        print("Нет сохранённых паролей")
-        return []
-
-    print("\nСохранённые пароли:")
-    print("-" * 50)
-    records = []
-    for key, value in data.items():
-        if "service" in value and "username" in value:
+        print("\nСохранённые пароли:")
+        print("-" * 50)
+        records = []
+        for row in rows:
             record = {
-                "service": value["service"],
-                "username": value["username"]
+                "service": row[0],
+                "username": row[1]
             }
             records.append(record)
-            print(f"  📌 {value['service']} | Пользователь: {value['username']}")
-        else:
-            # Старый формат
-            print(f"  ⚠️  {key} (старый формат, несовместим)")
+            print(f"  📌 {row[0]} | Пользователь: {row[1]}")
 
-    print("-" * 50)
-    print(f"Всего записей: {len(records)}")
-    return records
+        print("-" * 50)
+        print(f"Всего записей: {len(records)}")
+        return records
+    except Exception as e:
+        print(f"Ошибка получения списка: {e}")
+        return []
+    finally:
+        cur.close()
+        conn.close()
