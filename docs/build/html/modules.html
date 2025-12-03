@@ -1,0 +1,255 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>API Модулей &mdash; password-generator 1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=f2a433a1"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Генератор безопасных паролей" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            password-generator
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Содержание:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">API Модулей</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#generator.generate_password"><code class="docutils literal notranslate"><span class="pre">generate_password()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#commands.setup_parser"><code class="docutils literal notranslate"><span class="pre">setup_parser()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#commands.run_cli"><code class="docutils literal notranslate"><span class="pre">run_cli()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#storage.hash_password"><code class="docutils literal notranslate"><span class="pre">hash_password()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#storage.save_password"><code class="docutils literal notranslate"><span class="pre">save_password()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#storage.find_password"><code class="docutils literal notranslate"><span class="pre">find_password()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#utils.validate_length"><code class="docutils literal notranslate"><span class="pre">validate_length()</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">password-generator</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">API Модулей</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/modules.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-generator">
+<span id="api"></span><span id="modules"></span><h1>API Модулей<a class="headerlink" href="#module-generator" title="Link to this heading"></a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="generator.generate_password">
+<span class="sig-prename descclassname"><span class="pre">generator.</span></span><span class="sig-name descname"><span class="pre">generate_password</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">length</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_special</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_digits</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_uppercase</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_lowercase</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/generator.html#generate_password"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#generator.generate_password" title="Link to this definition"></a></dt>
+<dd><p>Генерирует безопасный пароль на основе заданных параметров.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>length</strong> (<em>int</em>) – Длина пароля. Должна быть от 8 до 128 символов.</p></li>
+<li><p><strong>use_special</strong> (<em>bool</em>) – Включать ли специальные символы (например, !&#64;#$%).</p></li>
+<li><p><strong>use_digits</strong> (<em>bool</em>) – Включать ли цифры (0-9).</p></li>
+<li><p><strong>use_uppercase</strong> (<em>bool</em>) – Включать ли заглавные буквы (A-Z).</p></li>
+<li><p><strong>use_lowercase</strong> (<em>bool</em>) – Включать ли строчные буквы (a-z).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Сгенерированный пароль заданной длины из выбранных наборов символов.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – Если длина вне диапазона [8, 128] или не выбран ни один тип символов.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<p id="module-commands">Модуль для обработки командной строки и взаимодействия с генератором и хранилищем.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="commands.setup_parser">
+<span class="sig-prename descclassname"><span class="pre">commands.</span></span><span class="sig-name descname"><span class="pre">setup_parser</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/commands.html#setup_parser"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#commands.setup_parser" title="Link to this definition"></a></dt>
+<dd><p>Создаёт и настраивает парсер аргументов командной строки.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Настроенный парсер с поддержкой всех флагов.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>argparse.ArgumentParser</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="commands.run_cli">
+<span class="sig-prename descclassname"><span class="pre">commands.</span></span><span class="sig-name descname"><span class="pre">run_cli</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/commands.html#run_cli"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#commands.run_cli" title="Link to this definition"></a></dt>
+<dd><p>Запускает CLI: обрабатывает аргументы и выполняет нужные действия.</p>
+<p>Поддерживает:
+- Генерацию пароля с кастомизацией символов
+- Сохранение пароля по метке
+- Поиск сохранённого пароля по метке</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function" id="module-storage">
+<dt class="sig sig-object py" id="storage.hash_password">
+<span class="sig-prename descclassname"><span class="pre">storage.</span></span><span class="sig-name descname"><span class="pre">hash_password</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">password</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/storage.html#hash_password"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#storage.hash_password" title="Link to this definition"></a></dt>
+<dd><p>Хэширует пароль с использованием алгоритма SHA-256.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>password</strong> (<em>str</em>) – Пароль в виде строки.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Хэш пароля в шестнадцатеричном формате (64 символа).</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="storage.save_password">
+<span class="sig-prename descclassname"><span class="pre">storage.</span></span><span class="sig-name descname"><span class="pre">save_password</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">password</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'passwords.json'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/storage.html#save_password"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#storage.save_password" title="Link to this definition"></a></dt>
+<dd><p>Сохраняет хэш пароля с меткой в JSON-файл.</p>
+<p>Если файл уже существует — обновляет его, добавляя новую запись.
+Если метка уже есть — перезаписывает её.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>password</strong> (<em>str</em>) – Пароль для сохранения.</p></li>
+<li><p><strong>label</strong> (<em>str</em>) – Метка (название сервиса, аккаунта и т.п.).</p></li>
+<li><p><strong>filename</strong> (<em>str</em><em>, </em><em>optional</em>) – Имя файла для хранения. По умолчанию “passwords.json”.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Side Effects:</dt><dd><p>Создаёт или обновляет JSON-файл с хэшами паролей.
+Выводит сообщение о сохранении в консоль.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="storage.find_password">
+<span class="sig-prename descclassname"><span class="pre">storage.</span></span><span class="sig-name descname"><span class="pre">find_password</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'passwords.json'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/storage.html#find_password"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#storage.find_password" title="Link to this definition"></a></dt>
+<dd><p>Ищет хэш сохранённого пароля по метке.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>label</strong> (<em>str</em>) – Метка, по которой нужно найти пароль.</p></li>
+<li><p><strong>filename</strong> (<em>str</em><em>, </em><em>optional</em>) – Имя файла с данными. По умолчанию “passwords.json”.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Хэш пароля, если найден, иначе None.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str or None</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Side Effects:</dt><dd><p>Выводит сообщение в консоль о результате поиска.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function" id="module-utils">
+<dt class="sig sig-object py" id="utils.validate_length">
+<span class="sig-prename descclassname"><span class="pre">utils.</span></span><span class="sig-name descname"><span class="pre">validate_length</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">length</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utils.html#validate_length"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#utils.validate_length" title="Link to this definition"></a></dt>
+<dd><p>Проверяет, что длина пароля находится в допустимом диапазоне.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>length</strong> (<em>int</em>) – Длина пароля для проверки.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>True, если длина от 8 до 128 включительно, иначе False.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="Генератор безопасных паролей" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Варламов Богдан.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

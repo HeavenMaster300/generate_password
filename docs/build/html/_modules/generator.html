@@ -1,0 +1,152 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>generator &mdash; password-generator 1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=f2a433a1"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            password-generator
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Содержание:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">API Модулей</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../modules.html#generator.generate_password"><code class="docutils literal notranslate"><span class="pre">generate_password()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../modules.html#commands.setup_parser"><code class="docutils literal notranslate"><span class="pre">setup_parser()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../modules.html#commands.run_cli"><code class="docutils literal notranslate"><span class="pre">run_cli()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../modules.html#storage.hash_password"><code class="docutils literal notranslate"><span class="pre">hash_password()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../modules.html#storage.save_password"><code class="docutils literal notranslate"><span class="pre">save_password()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../modules.html#storage.find_password"><code class="docutils literal notranslate"><span class="pre">find_password()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../modules.html#utils.validate_length"><code class="docutils literal notranslate"><span class="pre">validate_length()</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">password-generator</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Module code</a></li>
+      <li class="breadcrumb-item active">generator</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for generator</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">random</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">string</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">validate_length</span>
+
+
+<div class="viewcode-block" id="generate_password">
+<a class="viewcode-back" href="../modules.html#generator.generate_password">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">generate_password</span><span class="p">(</span><span class="n">length</span><span class="p">,</span> <span class="n">use_special</span><span class="p">,</span> <span class="n">use_digits</span><span class="p">,</span> <span class="n">use_uppercase</span><span class="p">,</span> <span class="n">use_lowercase</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Генерирует безопасный пароль на основе заданных параметров.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        length (int): Длина пароля. Должна быть от 8 до 128 символов.</span>
+<span class="sd">        use_special (bool): Включать ли специальные символы (например, !@#$%).</span>
+<span class="sd">        use_digits (bool): Включать ли цифры (0-9).</span>
+<span class="sd">        use_uppercase (bool): Включать ли заглавные буквы (A-Z).</span>
+<span class="sd">        use_lowercase (bool): Включать ли строчные буквы (a-z).</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str: Сгенерированный пароль заданной длины из выбранных наборов символов.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        ValueError: Если длина вне диапазона [8, 128] или не выбран ни один тип символов.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">validate_length</span><span class="p">(</span><span class="n">length</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Длина пароля должна быть от 8 до 128 символов&quot;</span><span class="p">)</span>
+
+    <span class="n">chars</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">use_lowercase</span><span class="p">:</span>
+        <span class="n">chars</span> <span class="o">+=</span> <span class="n">string</span><span class="o">.</span><span class="n">ascii_lowercase</span>
+    <span class="k">if</span> <span class="n">use_uppercase</span><span class="p">:</span>
+        <span class="n">chars</span> <span class="o">+=</span> <span class="n">string</span><span class="o">.</span><span class="n">ascii_uppercase</span>
+    <span class="k">if</span> <span class="n">use_digits</span><span class="p">:</span>
+        <span class="n">chars</span> <span class="o">+=</span> <span class="n">string</span><span class="o">.</span><span class="n">digits</span>
+    <span class="k">if</span> <span class="n">use_special</span><span class="p">:</span>
+        <span class="n">chars</span> <span class="o">+=</span> <span class="n">string</span><span class="o">.</span><span class="n">punctuation</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">chars</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Должен быть выбран хотя бы один тип символов&quot;</span><span class="p">)</span>
+
+    <span class="n">password</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">chars</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">length</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">password</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Варламов Богдан.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

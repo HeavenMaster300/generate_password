@@ -2,7 +2,7 @@
 
 import argparse
 from generator import generate_password
-from storage import save_password, find_password
+from storage import save_password, get_password, list_all_passwords
 
 
 def setup_parser():
@@ -17,8 +17,11 @@ def setup_parser():
     parser.add_argument("--digits", action="store_true", help="Использовать цифры")
     parser.add_argument("--uppercase", action="store_true", help="Использовать заглавные буквы")
     parser.add_argument("--lowercase", action="store_true", help="Использовать строчные буквы")
-    parser.add_argument("--save", type=str, help="Сохранить пароль с указанной меткой")
-    parser.add_argument("--find", type=str, help="Найти пароль по метке")
+    parser.add_argument("--save", action="store_true", help="Сохранить сгенерированный пароль")
+    parser.add_argument("--service", type=str, help="Название сервиса для сохранения/поиска пароля")
+    parser.add_argument("--username", type=str, help="Имя пользователя для сервиса")
+    parser.add_argument("--find", action="store_true", help="Найти пароль по сервису и пользователю")
+    parser.add_argument("--list", action="store_true", help="Показать список всех сохранённых паролей")
     return parser
 
 
@@ -27,8 +30,9 @@ def run_cli():
 
     Поддерживает:
     - Генерацию пароля с кастомизацией символов
-    - Сохранение пароля по метке
-    - Поиск сохранённого пароля по метке
+    - Сохранение пароля по сервису и имени пользователя
+    - Поиск сохранённого пароля по сервису и пользователю
+    - Вывод списка всех сохранённых паролей
 
     Returns:
         None
@@ -36,10 +40,20 @@ def run_cli():
     parser = setup_parser()
     args = parser.parse_args()
 
-    if args.find:
-        find_password(args.find)
+    # Показать список всех паролей
+    if args.list:
+        list_all_passwords()
         return
 
+    # Найти пароль
+    if args.find:
+        if not args.service or not args.username:
+            print("Ошибка: для поиска пароля необходимо указать --service и --username")
+            return
+        get_password(args.service, args.username)
+        return
+
+    # Генерация пароля
     try:
         password = generate_password(
             args.length,
@@ -50,7 +64,11 @@ def run_cli():
         )
         print(f"Сгенерирован пароль: {password}")
 
+        # Сохранение пароля
         if args.save:
-            save_password(password, args.save)
+            if not args.service or not args.username:
+                print("Ошибка: для сохранения пароля необходимо указать --service и --username")
+                return
+            save_password(password, args.service, args.username)
     except ValueError as e:
         print(f"Ошибка: {str(e)}")

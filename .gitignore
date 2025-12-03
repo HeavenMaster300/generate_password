@@ -1,0 +1,9 @@
+# Секретные данные
+secret.key
+passwords.json
+
+# Python cache (если ещё нет)
+__pycache__/
+*.pyc
+*.pyo
+*.py[cod]
