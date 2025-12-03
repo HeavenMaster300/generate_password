@@ -47,9 +47,12 @@
 <li class="toctree-l2"><a class="reference internal" href="#generator.generate_password"><code class="docutils literal notranslate"><span class="pre">generate_password()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#commands.setup_parser"><code class="docutils literal notranslate"><span class="pre">setup_parser()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#commands.run_cli"><code class="docutils literal notranslate"><span class="pre">run_cli()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#storage.hash_password"><code class="docutils literal notranslate"><span class="pre">hash_password()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#storage.get_or_create_key"><code class="docutils literal notranslate"><span class="pre">get_or_create_key()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#storage.encrypt_password"><code class="docutils literal notranslate"><span class="pre">encrypt_password()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#storage.decrypt_password"><code class="docutils literal notranslate"><span class="pre">decrypt_password()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#storage.save_password"><code class="docutils literal notranslate"><span class="pre">save_password()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#storage.find_password"><code class="docutils literal notranslate"><span class="pre">find_password()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#storage.get_password"><code class="docutils literal notranslate"><span class="pre">get_password()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#storage.list_all_passwords"><code class="docutils literal notranslate"><span class="pre">list_all_passwords()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#utils.validate_length"><code class="docutils literal notranslate"><span class="pre">validate_length()</span></code></a></li>
 </ul>
 </li>
@@ -128,8 +131,9 @@
 <dd><p>Запускает CLI: обрабатывает аргументы и выполняет нужные действия.</p>
 <p>Поддерживает:
 - Генерацию пароля с кастомизацией символов
-- Сохранение пароля по метке
-- Поиск сохранённого пароля по метке</p>
+- Сохранение пароля по сервису и имени пользователя
+- Поиск сохранённого пароля по сервису и пользователю
+- Вывод списка всех сохранённых паролей</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>None</p>
@@ -137,16 +141,57 @@
 </dl>
 </dd></dl>
 
-<dl class="py function" id="module-storage">
-<dt class="sig sig-object py" id="storage.hash_password">
-<span class="sig-prename descclassname"><span class="pre">storage.</span></span><span class="sig-name descname"><span class="pre">hash_password</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">password</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/storage.html#hash_password"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#storage.hash_password" title="Link to this definition"></a></dt>
-<dd><p>Хэширует пароль с использованием алгоритма SHA-256.</p>
+<p id="module-storage">Модуль для работы с хранением паролей в PostgreSQL.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="storage.get_or_create_key">
+<span class="sig-prename descclassname"><span class="pre">storage.</span></span><span class="sig-name descname"><span class="pre">get_or_create_key</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'secret.key'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/storage.html#get_or_create_key"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#storage.get_or_create_key" title="Link to this definition"></a></dt>
+<dd><p>Получает или создаёт ключ шифрования.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>password</strong> (<em>str</em>) – Пароль в виде строки.</p>
+<dd class="field-odd"><p><strong>key_file</strong> (<em>str</em>) – Имя файла с ключом шифрования.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Хэш пароля в шестнадцатеричном формате (64 символа).</p>
+<dd class="field-even"><p>Ключ шифрования.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bytes</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="storage.encrypt_password">
+<span class="sig-prename descclassname"><span class="pre">storage.</span></span><span class="sig-name descname"><span class="pre">encrypt_password</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">password</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/storage.html#encrypt_password"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#storage.encrypt_password" title="Link to this definition"></a></dt>
+<dd><p>Шифрует пароль с использованием Fernet.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>password</strong> (<em>str</em>) – Пароль в виде строки.</p></li>
+<li><p><strong>key</strong> (<em>bytes</em>) – Ключ шифрования.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Зашифрованный пароль в base64.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="storage.decrypt_password">
+<span class="sig-prename descclassname"><span class="pre">storage.</span></span><span class="sig-name descname"><span class="pre">decrypt_password</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">encrypted_password</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/storage.html#decrypt_password"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#storage.decrypt_password" title="Link to this definition"></a></dt>
+<dd><p>Расшифровывает пароль.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>encrypted_password</strong> (<em>str</em>) – Зашифрованный пароль в base64.</p></li>
+<li><p><strong>key</strong> (<em>bytes</em>) – Ключ шифрования.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Расшифрованный пароль.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>str</p>
@@ -156,49 +201,52 @@
 
 <dl class="py function">
 <dt class="sig sig-object py" id="storage.save_password">
-<span class="sig-prename descclassname"><span class="pre">storage.</span></span><span class="sig-name descname"><span class="pre">save_password</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">password</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'passwords.json'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/storage.html#save_password"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#storage.save_password" title="Link to this definition"></a></dt>
-<dd><p>Сохраняет хэш пароля с меткой в JSON-файл.</p>
-<p>Если файл уже существует — обновляет его, добавляя новую запись.
-Если метка уже есть — перезаписывает её.</p>
+<span class="sig-prename descclassname"><span class="pre">storage.</span></span><span class="sig-name descname"><span class="pre">save_password</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">password</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">service</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">username</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/storage.html#save_password"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#storage.save_password" title="Link to this definition"></a></dt>
+<dd><p>Сохраняет зашифрованный пароль в PostgreSQL.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>password</strong> (<em>str</em>) – Пароль для сохранения.</p></li>
-<li><p><strong>label</strong> (<em>str</em>) – Метка (название сервиса, аккаунта и т.п.).</p></li>
-<li><p><strong>filename</strong> (<em>str</em><em>, </em><em>optional</em>) – Имя файла для хранения. По умолчанию “passwords.json”.</p></li>
+<li><p><strong>service</strong> (<em>str</em>) – Название сервиса (например, “GitHub”, “Gmail”).</p></li>
+<li><p><strong>username</strong> (<em>str</em>) – Имя пользователя для этого сервиса.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>None</p>
 </dd>
 </dl>
-<dl class="simple">
-<dt>Side Effects:</dt><dd><p>Создаёт или обновляет JSON-файл с хэшами паролей.
-Выводит сообщение о сохранении в консоль.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="storage.get_password">
+<span class="sig-prename descclassname"><span class="pre">storage.</span></span><span class="sig-name descname"><span class="pre">get_password</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">service</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">username</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/storage.html#get_password"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#storage.get_password" title="Link to this definition"></a></dt>
+<dd><p>Получает расшифрованный пароль из PostgreSQL.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>service</strong> (<em>str</em>) – Название сервиса.</p></li>
+<li><p><strong>username</strong> (<em>str</em>) – Имя пользователя.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Словарь с данными о пароле, если найден, иначе None.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict or None</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="storage.find_password">
-<span class="sig-prename descclassname"><span class="pre">storage.</span></span><span class="sig-name descname"><span class="pre">find_password</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'passwords.json'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/storage.html#find_password"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#storage.find_password" title="Link to this definition"></a></dt>
-<dd><p>Ищет хэш сохранённого пароля по метке.</p>
+<dt class="sig sig-object py" id="storage.list_all_passwords">
+<span class="sig-prename descclassname"><span class="pre">storage.</span></span><span class="sig-name descname"><span class="pre">list_all_passwords</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/storage.html#list_all_passwords"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#storage.list_all_passwords" title="Link to this definition"></a></dt>
+<dd><p>Выводит список всех сохранённых записей из PostgreSQL без паролей.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>label</strong> (<em>str</em>) – Метка, по которой нужно найти пароль.</p></li>
-<li><p><strong>filename</strong> (<em>str</em><em>, </em><em>optional</em>) – Имя файла с данными. По умолчанию “passwords.json”.</p></li>
-</ul>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Список словарей с информацией о сервисах и пользователях.</p>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Хэш пароля, если найден, иначе None.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>str or None</p>
-</dd>
-</dl>
-<dl class="simple">
-<dt>Side Effects:</dt><dd><p>Выводит сообщение в консоль о результате поиска.</p>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>list</p>
 </dd>
 </dl>
 </dd></dl>

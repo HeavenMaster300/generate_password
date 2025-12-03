@@ -45,9 +45,12 @@
 <li class="toctree-l2"><a class="reference internal" href="../modules.html#generator.generate_password"><code class="docutils literal notranslate"><span class="pre">generate_password()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="../modules.html#commands.setup_parser"><code class="docutils literal notranslate"><span class="pre">setup_parser()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="../modules.html#commands.run_cli"><code class="docutils literal notranslate"><span class="pre">run_cli()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="../modules.html#storage.hash_password"><code class="docutils literal notranslate"><span class="pre">hash_password()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../modules.html#storage.get_or_create_key"><code class="docutils literal notranslate"><span class="pre">get_or_create_key()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../modules.html#storage.encrypt_password"><code class="docutils literal notranslate"><span class="pre">encrypt_password()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../modules.html#storage.decrypt_password"><code class="docutils literal notranslate"><span class="pre">decrypt_password()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="../modules.html#storage.save_password"><code class="docutils literal notranslate"><span class="pre">save_password()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="../modules.html#storage.find_password"><code class="docutils literal notranslate"><span class="pre">find_password()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../modules.html#storage.get_password"><code class="docutils literal notranslate"><span class="pre">get_password()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../modules.html#storage.list_all_passwords"><code class="docutils literal notranslate"><span class="pre">list_all_passwords()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="../modules.html#utils.validate_length"><code class="docutils literal notranslate"><span class="pre">validate_length()</span></code></a></li>
 </ul>
 </li>
@@ -82,7 +85,7 @@
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">argparse</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">generator</span><span class="w"> </span><span class="kn">import</span> <span class="n">generate_password</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">storage</span><span class="w"> </span><span class="kn">import</span> <span class="n">save_password</span><span class="p">,</span> <span class="n">find_password</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">storage</span><span class="w"> </span><span class="kn">import</span> <span class="n">save_password</span><span class="p">,</span> <span class="n">get_password</span><span class="p">,</span> <span class="n">list_all_passwords</span>
 
 
 <div class="viewcode-block" id="setup_parser">
@@ -99,8 +102,11 @@
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--digits&quot;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Использовать цифры&quot;</span><span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--uppercase&quot;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Использовать заглавные буквы&quot;</span><span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--lowercase&quot;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Использовать строчные буквы&quot;</span><span class="p">)</span>
-    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--save&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Сохранить пароль с указанной меткой&quot;</span><span class="p">)</span>
-    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--find&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Найти пароль по метке&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--save&quot;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Сохранить сгенерированный пароль&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--service&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Название сервиса для сохранения/поиска пароля&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--username&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Имя пользователя для сервиса&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--find&quot;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Найти пароль по сервису и пользователю&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--list&quot;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Показать список всех сохранённых паролей&quot;</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">parser</span></div>
 
 
@@ -112,8 +118,9 @@
 
 <span class="sd">    Поддерживает:</span>
 <span class="sd">    - Генерацию пароля с кастомизацией символов</span>
-<span class="sd">    - Сохранение пароля по метке</span>
-<span class="sd">    - Поиск сохранённого пароля по метке</span>
+<span class="sd">    - Сохранение пароля по сервису и имени пользователя</span>
+<span class="sd">    - Поиск сохранённого пароля по сервису и пользователю</span>
+<span class="sd">    - Вывод списка всех сохранённых паролей</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        None</span>
@@ -121,10 +128,20 @@
     <span class="n">parser</span> <span class="o">=</span> <span class="n">setup_parser</span><span class="p">()</span>
     <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
 
-    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">find</span><span class="p">:</span>
-        <span class="n">find_password</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">find</span><span class="p">)</span>
+    <span class="c1"># Показать список всех паролей</span>
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">list</span><span class="p">:</span>
+        <span class="n">list_all_passwords</span><span class="p">()</span>
         <span class="k">return</span>
 
+    <span class="c1"># Найти пароль</span>
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">find</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">args</span><span class="o">.</span><span class="n">service</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">args</span><span class="o">.</span><span class="n">username</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Ошибка: для поиска пароля необходимо указать --service и --username&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="n">get_password</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">service</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">username</span><span class="p">)</span>
+        <span class="k">return</span>
+
+    <span class="c1"># Генерация пароля</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">password</span> <span class="o">=</span> <span class="n">generate_password</span><span class="p">(</span>
             <span class="n">args</span><span class="o">.</span><span class="n">length</span><span class="p">,</span>
@@ -135,8 +152,12 @@
         <span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Сгенерирован пароль: </span><span class="si">{</span><span class="n">password</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
+        <span class="c1"># Сохранение пароля</span>
         <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">save</span><span class="p">:</span>
-            <span class="n">save_password</span><span class="p">(</span><span class="n">password</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">save</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">args</span><span class="o">.</span><span class="n">service</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">args</span><span class="o">.</span><span class="n">username</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Ошибка: для сохранения пароля необходимо указать --service и --username&quot;</span><span class="p">)</span>
+                <span class="k">return</span>
+            <span class="n">save_password</span><span class="p">(</span><span class="n">password</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">service</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">username</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Ошибка: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
 

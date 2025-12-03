@@ -45,9 +45,12 @@
 <li class="toctree-l2"><a class="reference internal" href="../modules.html#generator.generate_password"><code class="docutils literal notranslate"><span class="pre">generate_password()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="../modules.html#commands.setup_parser"><code class="docutils literal notranslate"><span class="pre">setup_parser()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="../modules.html#commands.run_cli"><code class="docutils literal notranslate"><span class="pre">run_cli()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="../modules.html#storage.hash_password"><code class="docutils literal notranslate"><span class="pre">hash_password()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../modules.html#storage.get_or_create_key"><code class="docutils literal notranslate"><span class="pre">get_or_create_key()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../modules.html#storage.encrypt_password"><code class="docutils literal notranslate"><span class="pre">encrypt_password()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../modules.html#storage.decrypt_password"><code class="docutils literal notranslate"><span class="pre">decrypt_password()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="../modules.html#storage.save_password"><code class="docutils literal notranslate"><span class="pre">save_password()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="../modules.html#storage.find_password"><code class="docutils literal notranslate"><span class="pre">find_password()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../modules.html#storage.get_password"><code class="docutils literal notranslate"><span class="pre">get_password()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../modules.html#storage.list_all_passwords"><code class="docutils literal notranslate"><span class="pre">list_all_passwords()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="../modules.html#utils.validate_length"><code class="docutils literal notranslate"><span class="pre">validate_length()</span></code></a></li>
 </ul>
 </li>
@@ -78,87 +81,208 @@
            <div itemprop="articleBody">
              
   <h1>Source code for storage</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">hashlib</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span></span><span class="sd">&quot;&quot;&quot;Модуль для работы с хранением паролей в PostgreSQL.&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">cryptography.fernet</span><span class="w"> </span><span class="kn">import</span> <span class="n">Fernet</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">db</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_db_connection</span><span class="p">,</span> <span class="n">init_database</span>
 
 
-<div class="viewcode-block" id="hash_password">
-<a class="viewcode-back" href="../modules.html#storage.hash_password">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">hash_password</span><span class="p">(</span><span class="n">password</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Хэширует пароль с использованием алгоритма SHA-256.</span>
+<div class="viewcode-block" id="get_or_create_key">
+<a class="viewcode-back" href="../modules.html#storage.get_or_create_key">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_or_create_key</span><span class="p">(</span><span class="n">key_file</span><span class="o">=</span><span class="s2">&quot;secret.key&quot;</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Получает или создаёт ключ шифрования.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        key_file (str): Имя файла с ключом шифрования.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        bytes: Ключ шифрования.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">key_file</span><span class="p">):</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">key_file</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="n">Fernet</span><span class="o">.</span><span class="n">generate_key</span><span class="p">()</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">key_file</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">key</span></div>
+
+
+
+<div class="viewcode-block" id="encrypt_password">
+<a class="viewcode-back" href="../modules.html#storage.encrypt_password">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">encrypt_password</span><span class="p">(</span><span class="n">password</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Шифрует пароль с использованием Fernet.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        password (str): Пароль в виде строки.</span>
+<span class="sd">        key (bytes): Ключ шифрования.</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        str: Хэш пароля в шестнадцатеричном формате (64 символа).</span>
+<span class="sd">        str: Зашифрованный пароль в base64.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">(</span><span class="n">password</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span></div>
+    <span class="n">fernet</span> <span class="o">=</span> <span class="n">Fernet</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+    <span class="n">encrypted</span> <span class="o">=</span> <span class="n">fernet</span><span class="o">.</span><span class="n">encrypt</span><span class="p">(</span><span class="n">password</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span>
+    <span class="k">return</span> <span class="n">encrypted</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="decrypt_password">
+<a class="viewcode-back" href="../modules.html#storage.decrypt_password">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">decrypt_password</span><span class="p">(</span><span class="n">encrypted_password</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Расшифровывает пароль.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        encrypted_password (str): Зашифрованный пароль в base64.</span>
+<span class="sd">        key (bytes): Ключ шифрования.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str: Расшифрованный пароль.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">fernet</span> <span class="o">=</span> <span class="n">Fernet</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+    <span class="n">decrypted</span> <span class="o">=</span> <span class="n">fernet</span><span class="o">.</span><span class="n">decrypt</span><span class="p">(</span><span class="n">encrypted_password</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span>
+    <span class="k">return</span> <span class="n">decrypted</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span></div>
 
 
 
 <div class="viewcode-block" id="save_password">
 <a class="viewcode-back" href="../modules.html#storage.save_password">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">save_password</span><span class="p">(</span><span class="n">password</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;passwords.json&quot;</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Сохраняет хэш пароля с меткой в JSON-файл.</span>
-
-<span class="sd">    Если файл уже существует — обновляет его, добавляя новую запись.</span>
-<span class="sd">    Если метка уже есть — перезаписывает её.</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">save_password</span><span class="p">(</span><span class="n">password</span><span class="p">,</span> <span class="n">service</span><span class="p">,</span> <span class="n">username</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Сохраняет зашифрованный пароль в PostgreSQL.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        password (str): Пароль для сохранения.</span>
-<span class="sd">        label (str): Метка (название сервиса, аккаунта и т.п.).</span>
-<span class="sd">        filename (str, optional): Имя файла для хранения. По умолчанию &quot;passwords.json&quot;.</span>
+<span class="sd">        service (str): Название сервиса (например, &quot;GitHub&quot;, &quot;Gmail&quot;).</span>
+<span class="sd">        username (str): Имя пользователя для этого сервиса.</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        None</span>
-
-<span class="sd">    Side Effects:</span>
-<span class="sd">        Создаёт или обновляет JSON-файл с хэшами паролей.</span>
-<span class="sd">        Выводит сообщение о сохранении в консоль.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">hashed</span> <span class="o">=</span> <span class="n">hash_password</span><span class="p">(</span><span class="n">password</span><span class="p">)</span>
-    <span class="n">data</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-            <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+    <span class="c1"># Инициализация БД (если таблицы нет)</span>
+    <span class="n">init_database</span><span class="p">()</span>
 
-    <span class="n">data</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;hash&quot;</span><span class="p">:</span> <span class="n">hashed</span><span class="p">}</span>
-    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-        <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">ensure_ascii</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Пароль для </span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2"> сохранён в </span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+    <span class="n">key</span> <span class="o">=</span> <span class="n">get_or_create_key</span><span class="p">()</span>
+    <span class="n">encrypted</span> <span class="o">=</span> <span class="n">encrypt_password</span><span class="p">(</span><span class="n">password</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+
+    <span class="n">conn</span> <span class="o">=</span> <span class="n">get_db_connection</span><span class="p">()</span>
+    <span class="n">cur</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># Попытка вставки или обновления (UPSERT)</span>
+        <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">            INSERT INTO passwords (service, username, password)</span>
+<span class="s2">            VALUES (</span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">)</span>
+<span class="s2">            ON CONFLICT (service, username) </span>
+<span class="s2">            DO UPDATE SET </span>
+<span class="s2">                password = EXCLUDED.password,</span>
+<span class="s2">                updated_at = NOW();</span>
+<span class="s2">        &quot;&quot;&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">service</span><span class="p">,</span> <span class="n">username</span><span class="p">,</span> <span class="n">encrypted</span><span class="p">))</span>
+
+        <span class="n">conn</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Пароль для </span><span class="si">{</span><span class="n">service</span><span class="si">}</span><span class="s2"> (пользователь: </span><span class="si">{</span><span class="n">username</span><span class="si">}</span><span class="s2">) сохранён в базе данных&quot;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">conn</span><span class="o">.</span><span class="n">rollback</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Ошибка сохранения: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="n">cur</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="n">conn</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
 
 
 
-<div class="viewcode-block" id="find_password">
-<a class="viewcode-back" href="../modules.html#storage.find_password">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">find_password</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;passwords.json&quot;</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Ищет хэш сохранённого пароля по метке.</span>
+<div class="viewcode-block" id="get_password">
+<a class="viewcode-back" href="../modules.html#storage.get_password">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_password</span><span class="p">(</span><span class="n">service</span><span class="p">,</span> <span class="n">username</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Получает расшифрованный пароль из PostgreSQL.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        label (str): Метка, по которой нужно найти пароль.</span>
-<span class="sd">        filename (str, optional): Имя файла с данными. По умолчанию &quot;passwords.json&quot;.</span>
+<span class="sd">        service (str): Название сервиса.</span>
+<span class="sd">        username (str): Имя пользователя.</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        str or None: Хэш пароля, если найден, иначе None.</span>
-
-<span class="sd">    Side Effects:</span>
-<span class="sd">        Выводит сообщение в консоль о результате поиска.</span>
+<span class="sd">        dict or None: Словарь с данными о пароле, если найден, иначе None.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Файл </span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2"> не найден&quot;</span><span class="p">)</span>
+    <span class="n">conn</span> <span class="o">=</span> <span class="n">get_db_connection</span><span class="p">()</span>
+    <span class="n">cur</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">            SELECT service, username, password </span>
+<span class="s2">            FROM passwords </span>
+<span class="s2">            WHERE service = </span><span class="si">%s</span><span class="s2"> AND username = </span><span class="si">%s</span><span class="s2">;</span>
+<span class="s2">        &quot;&quot;&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">service</span><span class="p">,</span> <span class="n">username</span><span class="p">))</span>
+
+        <span class="n">row</span> <span class="o">=</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">row</span><span class="p">:</span>
+            <span class="n">key</span> <span class="o">=</span> <span class="n">get_or_create_key</span><span class="p">()</span>
+            <span class="n">encrypted_password</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+            <span class="n">decrypted_password</span> <span class="o">=</span> <span class="n">decrypt_password</span><span class="p">(</span><span class="n">encrypted_password</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+
+            <span class="n">result</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">&quot;service&quot;</span><span class="p">:</span> <span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="s2">&quot;username&quot;</span><span class="p">:</span> <span class="n">row</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                <span class="s2">&quot;password&quot;</span><span class="p">:</span> <span class="n">decrypted_password</span>
+            <span class="p">}</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">🔓 Найден пароль для </span><span class="si">{</span><span class="n">service</span><span class="si">}</span><span class="s2"> (пользователь: </span><span class="si">{</span><span class="n">username</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   Пароль: </span><span class="si">{</span><span class="n">decrypted_password</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">result</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Пароль для </span><span class="si">{</span><span class="n">service</span><span class="si">}</span><span class="s2"> (пользователь: </span><span class="si">{</span><span class="n">username</span><span class="si">}</span><span class="s2">) не найден&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Ошибка получения пароля: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="n">cur</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="n">conn</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
 
-    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Найден хэш пароля для </span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">data</span><span class="p">[</span><span class="n">label</span><span class="p">][</span><span class="s1">&#39;hash&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">data</span><span class="p">[</span><span class="n">label</span><span class="p">][</span><span class="s2">&quot;hash&quot;</span><span class="p">]</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Пароль с меткой </span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2"> не найден&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="list_all_passwords">
+<a class="viewcode-back" href="../modules.html#storage.list_all_passwords">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">list_all_passwords</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Выводит список всех сохранённых записей из PostgreSQL без паролей.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: Список словарей с информацией о сервисах и пользователях.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">conn</span> <span class="o">=</span> <span class="n">get_db_connection</span><span class="p">()</span>
+    <span class="n">cur</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">            SELECT service, username, created_at </span>
+<span class="s2">            FROM passwords </span>
+<span class="s2">            ORDER BY created_at DESC;</span>
+<span class="s2">        &quot;&quot;&quot;</span><span class="p">)</span>
+
+        <span class="n">rows</span> <span class="o">=</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">rows</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Нет сохранённых паролей&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">[]</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Сохранённые пароли:&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;-&quot;</span> <span class="o">*</span> <span class="mi">50</span><span class="p">)</span>
+        <span class="n">records</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">:</span>
+            <span class="n">record</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">&quot;service&quot;</span><span class="p">:</span> <span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="s2">&quot;username&quot;</span><span class="p">:</span> <span class="n">row</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="p">}</span>
+            <span class="n">records</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">record</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  📌 </span><span class="si">{</span><span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2"> | Пользователь: </span><span class="si">{</span><span class="n">row</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;-&quot;</span> <span class="o">*</span> <span class="mi">50</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Всего записей: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">records</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">records</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Ошибка получения списка: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="n">cur</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="n">conn</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
 
 </pre></div>
 
